@@ -27,6 +27,19 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 }
 
+void checkCompilationErrors(unsigned int shader)
+{
+	int success;
+	char infoLog[512];
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+	if (!success)
+	{
+		glGetShaderInfoLog(shader, 512, NULL, infoLog);
+		std::cout << "Shader compilation failed\n" << infoLog << std::endl;
+	}
+}
+
 int main()
 {
 	// Init GLFW
@@ -78,15 +91,7 @@ int main()
 	glCompileShader(vertexShader);
 
 	// Check for errors
-	int success;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
+	checkCompilationErrors(vertexShader);
 
 	// Create fragment shader
 	unsigned int fragmentShader;
@@ -95,13 +100,7 @@ int main()
 	glCompileShader(fragmentShader);
 
 	// Check for errors
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
+	checkCompilationErrors(fragmentShader);
 
 	// Render loop
 	while (!glfwWindowShouldClose(window))
