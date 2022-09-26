@@ -10,7 +10,7 @@ const char* vertexShaderSource = "#version 400 core\n"
 	"}\0";
 
 const char* fragmentShaderSource = "#version 400 core\n"
-	"out vec4 FragColor\n"
+	"out vec4 FragColor;\n"
 	"void main()\n"
 	"{\n"
 	" FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
@@ -88,6 +88,20 @@ int main()
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
 
+	// Create fragment shader
+	unsigned int fragmentShader;
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+
+	// Check for errors
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+
+	if (!success)
+	{
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
 
 	// Render loop
 	while (!glfwWindowShouldClose(window))
