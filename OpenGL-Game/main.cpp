@@ -7,7 +7,7 @@
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, Shader shader);
 
 int main()
 {
@@ -123,13 +123,14 @@ int main()
 
 	shader.use();
 	shader.setInt("texture2", 1);
+	shader.setFloat("mixVal", 0.0f);
 
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// Render loop
 	while (!glfwWindowShouldClose(window))
 	{
-		processInput(window);
+		processInput(window, shader);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -162,8 +163,21 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, Shader shader)
 {
+	float currMixVal;
+	glGetUniformfv(shader.ID, glGetUniformLocation(shader.ID, "mixVal"), &currMixVal);
+	std::cout << currMixVal << std::endl;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
 		glfwSetWindowShouldClose(window, true);
+	}
+	else if (currMixVal <= 1.0 && (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS))
+	{
+		shader.setFloat("mixVal", currMixVal + 0.001);
+	}
+	else if (currMixVal >= 0.0 && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS))
+	{
+		shader.setFloat("mixVal", currMixVal - 0.001);
+	}
 }
