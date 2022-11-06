@@ -145,6 +145,7 @@
     <None Include="shader.vs" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="assets\beholder-1.png" />
     <Image Include="assets\beholder.png" />
     <Image Include="assets\container.jpg" />
   </ItemGroup>

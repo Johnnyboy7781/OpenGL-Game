@@ -51,5 +51,8 @@
     <Image Include="assets\beholder.png">
       <Filter>assets</Filter>
     </Image>
+    <Image Include="assets\beholder-1.png">
+      <Filter>assets</Filter>
+    </Image>
   </ItemGroup>
 </Project>
