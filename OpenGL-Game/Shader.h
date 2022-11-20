@@ -99,6 +99,11 @@ public:
 		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 	}
 
+	void setMat4(const string& name, glm::mat4& value) const
+	{
+		glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &value[0][0]);
+	}
+
 	void checkCompilationErrors(unsigned int object, bool isShader = true)
 	{
 		int success;

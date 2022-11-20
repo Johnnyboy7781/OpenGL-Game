@@ -171,6 +171,7 @@ int main()
 	stbi_image_free(data);
 
 	shader.use();
+	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
 	shader.setFloat("mixVal", 0.0f);
 
@@ -178,6 +179,9 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, texture1);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	mat4 projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	shader.setMat4("projection", projection);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -192,17 +196,10 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		const float radius = 10.0f;
-		float camX = sin(glfwGetTime()) * radius;
-		float camZ = cos(glfwGetTime()) * radius;
+		float camX = (float)sin(glfwGetTime()) * radius;
+		float camZ = (float)cos(glfwGetTime()) * radius;
 		mat4 view = lookAt(vec3(camX, 0.0f, camZ), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-
-		mat4 projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-		int modelLoc = glGetUniformLocation(shader.ID, "model");
-		int viewLoc = glGetUniformLocation(shader.ID, "view");
-		int projLoc = glGetUniformLocation(shader.ID, "projection");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
-		glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(projection));
+		shader.setMat4("view", view);
 
 		// Camera
 		vec3 cameraPos = vec3(0.0f, 0.0f, 3.0f);
@@ -222,7 +219,7 @@ int main()
 			model = rotate(model, i * (float)glfwGetTime() * radians(10.0f), vec3(0.50f, 1.0f, 0.0f));
 			float angle = 20.0f * i;
 			model = rotate(model, radians(angle), vec3(1.0f, 0.3f, 0.5f));
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
+			shader.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
