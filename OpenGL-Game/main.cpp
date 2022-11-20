@@ -22,6 +22,10 @@ vec3 cameraPos = vec3(0.0f, 0.0f, 3.0f);
 vec3 cameraFront = vec3(0.0f, 0.0f, -1.0f);
 vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
 
+// time normalization
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
 int main()
 {
 	const float vertices[] = {
@@ -199,23 +203,12 @@ int main()
 	{
 		processInput(window, shader);
 
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		/*const float radius = 10.0f;
-		float camX = (float)sin(glfwGetTime()) * radius;
-		float camZ = (float)cos(glfwGetTime()) * radius;
-		mat4 view = lookAt(vec3(camX, 0.0f, camZ), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-		shader.setMat4("view", view);*/
-
-		// Camera
-		/*vec3 cameraPos = vec3(0.0f, 0.0f, 3.0f);
-		vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
-		vec3 cameraDirection = normalize(cameraPos - cameraTarget);
-
-		vec3 up = vec3(0.0f, 1.0f, 0.0f);
-		vec3 cameraRight = normalize(cross(up, cameraDirection));
-		vec3 cameraUp = cross(cameraDirection, cameraRight);*/
 
 		mat4 view = lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		shader.setMat4("view", view);
@@ -257,15 +250,16 @@ void processInput(GLFWwindow* window, Shader shader)
 
 	// Texture fade control
 	float currMixVal;
+	const float fadeSpeed = 1.0f * deltaTime;
 	glGetUniformfv(shader.ID, glGetUniformLocation(shader.ID, "mixVal"), &currMixVal);
 
 	if (currMixVal <= 1.0 && (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS))
-		shader.setFloat("mixVal", currMixVal + 0.001f);
+		shader.setFloat("mixVal", currMixVal + fadeSpeed);
 	if (currMixVal >= 0.0 && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS))
-		shader.setFloat("mixVal", currMixVal - 0.001f);
+		shader.setFloat("mixVal", currMixVal - fadeSpeed);
 
 	// Camera control
-	const float cameraSpeed = 0.005f;
+	const float cameraSpeed = 2.5f * deltaTime;
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += cameraSpeed * cameraFront;
