@@ -16,35 +16,8 @@ void processInput(GLFWwindow* window, Shader shader);
 
 int main()
 {
-	// Initialization
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Game", NULL, NULL);
-	if (window == NULL)
-	{
-		std::cout << "Failed to create window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window);
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
-
-	glViewport(0, 0, 800, 600);
-
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	// Shader creation
-	Shader shader("shader.vs", "shader.fs");
-
-	float vertices[] = {
+	const int windowWidth = 800, windowHeight = 600;
+	const float vertices[] = {
 		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 		0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
 		0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
@@ -86,6 +59,47 @@ int main()
 		0, 1, 3,
 		1, 2, 3
 	};
+	const vec3 cubePositions[] = {
+		vec3(0.0f, 0.0f, 0.0f),
+		vec3(2.0f, 5.0f, -15.0f),
+		vec3(-1.5f, -2.2f, -2.5f),
+		vec3(-3.8f, -2.0f, -12.3f),
+		vec3(2.4f, -0.4f, -3.5f),
+		vec3(-1.7f, 3.0f, -7.5f),
+		vec3(1.3f, -2.0f, -2.5f),
+		vec3(1.5f, 2.0f, -2.5f),
+		vec3(1.5f, 0.2f, -1.5f),
+		vec3(-1.3f, 1.0f, -1.5f)
+	};
+
+	// Initialization
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "OpenGL Game", NULL, NULL);
+
+	if (window == NULL)
+	{
+		std::cout << "Failed to create window" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return -1;
+	}
+
+	glViewport(0, 0, windowWidth, windowHeight);
+
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+	// Shader creation
+	Shader shader("shader.vert", "shader.frag");
 
 	// VAO/VBO creation
 	unsigned int VAO, VBO;
@@ -111,7 +125,7 @@ int main()
 	unsigned int texture1, texture2;
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
-	
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -120,8 +134,8 @@ int main()
 	stbi_set_flip_vertically_on_load(true);
 
 	int width, height, nrChannels;
-	unsigned char *data = stbi_load("./assets/container.jpg", &width, &height, &nrChannels, 0);
-	
+	unsigned char* data = stbi_load("./assets/container.jpg", &width, &height, &nrChannels, 0);
+
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -160,21 +174,12 @@ int main()
 	shader.setInt("texture2", 1);
 	shader.setFloat("mixVal", 0.0f);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, texture2);
 
 	glEnable(GL_DEPTH_TEST);
-
-	vec3 cubePositions[] = {
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(2.0f, 5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f, 3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f, 2.0f, -2.5f),
-		glm::vec3(1.5f, 0.2f, -1.5f),
-		glm::vec3(-1.3f, 1.0f, -1.5f)
-	};
 
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -186,22 +191,27 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		const float radius = 10.0f;
+		float camX = sin(glfwGetTime()) * radius;
+		float camZ = cos(glfwGetTime()) * radius;
+		mat4 view = lookAt(vec3(camX, 0.0f, camZ), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
-		mat4 view = mat4(1.0f), projection;
-		// model = rotate(model, (float)glfwGetTime() * radians(50.0f), vec3(0.5f, 1.0f, 0.0f));
-		view = translate(view, vec3(0.0f, 0.0f, -3.0f));
-		projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+		mat4 projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
 		int modelLoc = glGetUniformLocation(shader.ID, "model");
 		int viewLoc = glGetUniformLocation(shader.ID, "view");
 		int projLoc = glGetUniformLocation(shader.ID, "projection");
-		// glUniformMatrix4fv(modelLoc, 1, GL_FALSE, value_ptr(model));
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, value_ptr(projection));
+
+		// Camera
+		vec3 cameraPos = vec3(0.0f, 0.0f, 3.0f);
+		vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
+		vec3 cameraDirection = normalize(cameraPos - cameraTarget);
+
+		vec3 up = vec3(0.0f, 1.0f, 0.0f);
+		vec3 cameraRight = normalize(cross(up, cameraDirection));
+		vec3 cameraUp = cross(cameraDirection, cameraRight);
 
 		shader.use();
 		glBindVertexArray(VAO);
