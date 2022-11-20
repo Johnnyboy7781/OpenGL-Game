@@ -14,6 +14,7 @@ using namespace glm;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, Shader shader);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // settings
 const unsigned int windowWidth = 800, windowHeight = 600;
@@ -27,6 +28,8 @@ float lastX = 400, lastY = 300;
 float yawVal = -90.0f;
 float pitchVal = 0.0f;
 bool firstMouse = true;
+
+float fov = 45.0f;
 
 // time normalization
 float deltaTime = 0.0f;
@@ -117,6 +120,7 @@ int main()
 
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 
 	// Shader creation
@@ -201,9 +205,6 @@ int main()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, texture2);
 
-	mat4 projection = perspective(radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-	shader.setMat4("projection", projection);
-
 	glEnable(GL_DEPTH_TEST);
 
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -211,9 +212,13 @@ int main()
 	// Render loop
 	while (!glfwWindowShouldClose(window))
 	{
+		cout << "0\n";
 		processInput(window, shader);
 
-		float currentFrame = glfwGetTime();
+		mat4 projection = perspective(radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+		shader.setMat4("projection", projection);
+
+		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -283,17 +288,19 @@ void processInput(GLFWwindow* window, Shader shader)
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+
+	cout << "mouse callback fired\n";
 	if (firstMouse)
 	{
-		lastX = xpos;
-		lastY = ypos;
+		lastX = (float)xpos;
+		lastY = (float)ypos;
 		firstMouse = false;
 	}
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
-	lastX = xpos;
-	lastY = ypos;
+	float xoffset = (float)xpos - lastX;
+	float yoffset = lastY - (float)ypos;
+	lastX = (float)xpos;
+	lastY = (float)ypos;
 
 	const float sensitivity = 0.1f;
 	xoffset *= sensitivity;
@@ -312,4 +319,13 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	direction.y = sin(radians(pitchVal));
 	direction.z = sin(radians(yawVal)) * cos(radians(pitchVal));
 	cameraFront = normalize(direction);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	fov -= (float)yoffset;
+	if (fov < 1.0f)
+		fov = 1.0f;
+	if (fov > 45.0f)
+		fov = 45.0f;
 }
