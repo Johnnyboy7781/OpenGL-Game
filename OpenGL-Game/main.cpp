@@ -14,9 +14,16 @@ using namespace glm;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, Shader shader);
 
+// settings
+const unsigned int windowWidth = 800, windowHeight = 600;
+
+// camera 
+vec3 cameraPos = vec3(0.0f, 0.0f, 3.0f);
+vec3 cameraFront = vec3(0.0f, 0.0f, -1.0f);
+vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f);
+
 int main()
 {
-	const int windowWidth = 800, windowHeight = 600;
 	const float vertices[] = {
 		-0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 		0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
@@ -195,20 +202,23 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		const float radius = 10.0f;
+		/*const float radius = 10.0f;
 		float camX = (float)sin(glfwGetTime()) * radius;
 		float camZ = (float)cos(glfwGetTime()) * radius;
 		mat4 view = lookAt(vec3(camX, 0.0f, camZ), vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
-		shader.setMat4("view", view);
+		shader.setMat4("view", view);*/
 
 		// Camera
-		vec3 cameraPos = vec3(0.0f, 0.0f, 3.0f);
+		/*vec3 cameraPos = vec3(0.0f, 0.0f, 3.0f);
 		vec3 cameraTarget = vec3(0.0f, 0.0f, 0.0f);
 		vec3 cameraDirection = normalize(cameraPos - cameraTarget);
 
 		vec3 up = vec3(0.0f, 1.0f, 0.0f);
 		vec3 cameraRight = normalize(cross(up, cameraDirection));
-		vec3 cameraUp = cross(cameraDirection, cameraRight);
+		vec3 cameraUp = cross(cameraDirection, cameraRight);*/
+
+		mat4 view = lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		shader.setMat4("view", view);
 
 		shader.use();
 		glBindVertexArray(VAO);
@@ -242,18 +252,27 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void processInput(GLFWwindow* window, Shader shader)
 {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	// Texture fade control
 	float currMixVal;
 	glGetUniformfv(shader.ID, glGetUniformLocation(shader.ID, "mixVal"), &currMixVal);
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-	else if (currMixVal <= 1.0 && (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS))
-	{
+
+	if (currMixVal <= 1.0 && (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS))
 		shader.setFloat("mixVal", currMixVal + 0.001f);
-	}
-	else if (currMixVal >= 0.0 && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS))
-	{
+	if (currMixVal >= 0.0 && (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS))
 		shader.setFloat("mixVal", currMixVal - 0.001f);
-	}
+
+	// Camera control
+	const float cameraSpeed = 0.005f;
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= normalize(cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += normalize(cross(cameraFront, cameraUp)) * cameraSpeed;
 }
