@@ -9,6 +9,7 @@
 #include "stb_image.h"
 
 #include <iostream>
+#include <iomanip>
 
 using namespace glm;
 
@@ -16,6 +17,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window, Shader shader);
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void showFPS(GLFWwindow* window);
 
 // settings
 const unsigned int windowWidth = 800, windowHeight = 600;
@@ -29,6 +31,10 @@ bool firstMouse = true;
 // time normalization
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+// FPS
+int frameCount = 0;
+double lastTime = 0;
 
 int main()
 {
@@ -206,8 +212,9 @@ int main()
 	// Render loop
 	while (!glfwWindowShouldClose(window))
 	{
-		cout << "0\n";
 		processInput(window, shader);
+
+		frameCount++;
 
 		mat4 projection = perspective(radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
 		shader.setMat4("projection", projection);
@@ -215,6 +222,8 @@ int main()
 		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		showFPS(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -304,4 +313,24 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+
+void showFPS(GLFWwindow* window)
+{
+	// Measure speed
+	double currentTime = glfwGetTime();
+	double delta = currentTime - lastTime;
+	frameCount++;
+	if (delta >= 0.5) { // update every 0.1s
+		double fps = double(frameCount) / delta;
+
+		std::stringstream ss;
+		ss << " [" << fps << " FPS]";
+
+		glfwSetWindowTitle(window, ss.str().c_str());
+
+		frameCount = 0;
+		lastTime = currentTime;
+	}
 }
